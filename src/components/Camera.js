@@ -1,70 +1,102 @@
-import React from 'react'
-import { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react'
 import * as faceapi from "face-api.js";
 
 const Camera = () => {
-    const videoRef = useRef();
-    const canvasRef = useRef();
+
+    const videoRef = React.useRef();
+    const videoHeight = 480;
+    const videoWidth = 640;
+    let webcam
+    const homeRef = useRef();
+    // webcam.addEventListener("play", refreshState)
+    let isUsingCamera;
+    let currentSmileStatus;
 
     useEffect(() => {
-        startVideo();
-        videoRef && loadModels();
+        return () => {
+            webcam = document.getElementById("webcam")
+            setupFaceDetection()
+            setupWebcam()
+        };
     }, []);
-    const startVideo = () => {
-        navigator.mediaDevices.getUserMedia({ video: true    })
-            .then((currentStream) => {
-                videoRef.current.srcObject = currentStream;
-            }).catch((err) => {
-            console.error(err)
-        });
+
+    async function setupFaceDetection() {
+        // event.preventDefault()
+
+        const homeDoc = document.getElementById("home")
+        if (homeDoc != null) {
+        homeDoc.remove()
+        }
+        const smileStatusDoc = document.getElementById("smileStatus")
+        if (smileStatusDoc != null) {
+            smileStatusDoc.style.display = "block"
+        }
+        await loadModels()
+        // setupWebcam()
     }
 
-    const loadModels = () => {
-        Promise.all([
-            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-            faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
-            faceapi.nets.faceExpressionNet.loadFromUri('/models'),
-        ]).then(() => {
-            faceDetection();
-        })
-    };
-    const faceDetection = async () => {
-        setInterval(async() => {
-            const detections = await faceapi.detectAllFaces(
-                videoRef.current,
-                new faceapi.TinyFaceDetectorOptions()
-            )
-                .withFaceLandmarks()
-                .withFaceExpressions()
-                .withFaceDescriptors();
+    async function loadModels() {
+        await faceapi.nets.tinyFaceDetector.loadFromUri("https://www.smile-lose.com/models")
+        await faceapi.nets.faceExpressionNet.loadFromUri("https://www.smile-lose.com/models")
+    }
 
-            canvasRef.current.innerHtml = faceapi.createCanvasFromMedia(videoRef.current);
-            faceapi.matchDimensions(canvasRef.current, {
-                width: 940,
-                height: 650,
+    function setupWebcam() {
+        navigator.mediaDevices
+            .getUserMedia({ video: true, audio: false })
+            .then(stream => {
+                webcam.srcObject = stream
+                // if (isFirstRound) startFirstRound()
             })
+            .catch(() => {
+                document.getElementById("smileStatus").textContent = "camera not found"
 
-            const resized = faceapi.resizeResults(detections, {
-                width: 940,
-                height: 650,
-            });
-
-            faceapi.draw.drawDetections(canvasRef.current, resized)
-            faceapi.draw.drawFaceLandmarks(canvasRef.current, resized)
-            faceapi.draw.drawFaceExpressions(canvasRef.current, resized)
-
-        }, 1000)
+                isUsingCamera = false
+                // if (isFirstRound) startFirstRound()
+            })
     }
 
+    function isSmiling(expressions) {
+        // filtering false positive
+        const maxValue = Math.max(
+            ...Object.values(expressions).filter(value => value <= 1)
+        )
+        const expressionsKeys = Object.keys(expressions)
+        const mostLikely = expressionsKeys.filter(
+            expression => expressions[expression] === maxValue
+        )
+        if (mostLikely[0] && mostLikely[0] == 'happy')
+            return true
+        return false
+    }
 
-    return (
-        <camera style = {cameraStyle}>
-            <video crossOrigin='anonymous' ref={videoRef} autoPlay/>
-            <canvas ref={canvasRef} width="940" height="650" className='app__canvas' />
+    async function refreshState() {
+        setInterval(async() => {
+            const detections = await faceapi
+                .detectAllFaces(webcam, new faceapi.TinyFaceDetectorOptions())
+                .withFaceExpressions()
+            if (detections && detections[0] && detections[0].expressions) {
+                isUsingCamera = true
+                if (isSmiling(detections[0].expressions)) {
+                    currentSmileStatus = true
+                    document.getElementById("smileStatus").textContent = "YOU SMILE !"
+                } else {
+                    document.getElementById("smileStatus").textContent = "not smiling"
+                }
+            }
+        }, 400)
+    }
+
+    return(
+        <camera >
+            <div ref={videoRef}>
+
+            </div>
         </camera>
     )
+
 }
+
+
 const cameraStyle = {
     margin: '0',
     padding: '0',
@@ -72,8 +104,12 @@ const cameraStyle = {
     height: '100vh',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    position: 'absolute'
+    alignItems: 'center'
+}
+
+const appCanvas = {
+    position: 'absolute',
+    top: '100px'
 }
 
 export default Camera
