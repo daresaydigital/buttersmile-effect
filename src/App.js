@@ -1,14 +1,14 @@
-import './App.css';
-import './index.scss'
-import React from 'react'
-import Header from './components/Header'
-import Camera from "./components/Camera";
+import React from "react";
+import "./App.css";
+import { Example } from "./components/Example";
+import Header from "./components/Header";
+import "./index.scss";
 
 function App() {
   return (
     <div className="container">
-        <Header/>
-        <Camera/>
+      <Header />
+      <Example />
     </div>
   );
 }
