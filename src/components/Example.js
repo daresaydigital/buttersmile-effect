@@ -8,7 +8,8 @@ const VIDEO_WIDTH = 640;
 export const Example = () => {
   const videoRef = useRef();
   const [modelsLoaded, setModelsLoaded] = useState(false);
-  const [captureVideo, setCaptureVideo] = React.useState(false);
+  const [captureVideo, setCaptureVideo] = useState(false);
+  const [expression, setExpression] = useState(undefined);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -26,9 +27,9 @@ export const Example = () => {
   const startWebcam = () => {
     setCaptureVideo(true);
     navigator.mediaDevices
-      .getUserMedia({ video: { width: 300 } })
+      .getUserMedia({ video: { width: VIDEO_WIDTH } })
       .then((stream) => {
-        let video = videoRef.current;
+        const video = videoRef.current;
         video.srcObject = stream;
         video.play();
       })
@@ -54,8 +55,12 @@ export const Example = () => {
             )
             .withFaceExpressions();
 
-          // TODO: Do something with the result here :)
-          console.log("result: ", result);
+          // TODO: Do something with the result here :) For example:
+          const expressions =
+            result.length && result[0].expressions.asSortedArray();
+          if (expressions && expressions.length) {
+            setExpression(expressions[0]);
+          }
         }
       } catch (error) {
         console.error("error: ", error);
@@ -66,19 +71,21 @@ export const Example = () => {
   return (
     <div>
       <div style={{ textAlign: "center", padding: "10px" }}>
-        {captureVideo && modelsLoaded ? (
+        {captureVideo ? (
           <button onClick={closeWebcam}>Close webcam</button>
         ) : (
           <button onClick={startWebcam}>Start webcam</button>
         )}
       </div>
-      {captureVideo ? (
-        modelsLoaded ? (
+      {captureVideo &&
+        (modelsLoaded ? (
           <div>
             <div
               style={{
                 display: "flex",
-                justifyContent: "center",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
               }}
             >
               <video
@@ -87,14 +94,14 @@ export const Example = () => {
                 width={VIDEO_WIDTH}
                 onPlay={onVideoPlay}
               />
+              <div style={{ width: "200px" }}>
+                Mood: {expression ? expression.expression : "-"}
+              </div>
             </div>
           </div>
         ) : (
           <div>Loading...</div>
-        )
-      ) : (
-        <></>
-      )}
+        ))}
     </div>
   );
 };
