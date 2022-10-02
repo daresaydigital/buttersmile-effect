@@ -36,8 +36,12 @@ const Camera = () => {
     }
 
     async function loadModels() {
-        await faceapi.nets.tinyFaceDetector.loadFromUri("https://www.smile-lose.com/models")
-        await faceapi.nets.faceExpressionNet.loadFromUri("https://www.smile-lose.com/models")
+        //"https://www.smile-lose.com/models"
+        const port = "3000"
+        const host = "10.2.7.60"
+        const modelsUrl = "http://${host}:${port}/models"
+        await faceapi.nets.tinyFaceDetector.loadFromUri(modelsUrl)
+        await faceapi.nets.faceExpressionNet.loadFromUri(modelsUrl)
     }
 
     function setupWebcam() {
