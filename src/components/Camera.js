@@ -1,119 +1,150 @@
-import React, {useEffect, useRef} from 'react'
 import * as faceapi from "face-api.js";
+import React, {useEffect, useRef, useState} from "react";
+import html2canvas from "html2canvas";
 
-const Camera = () => {
+const MODEL_URL = process.env.PUBLIC_URL + "/models";
+const VIDEO_HEIGHT = 480;
+const VIDEO_WIDTH = 640;
 
-    const videoRef = React.useRef();
-    const videoHeight = 480;
-    const videoWidth = 640;
-    let webcam
-    const homeRef = useRef();
-    // webcam.addEventListener("play", refreshState)
-    let isUsingCamera;
-    let currentSmileStatus;
+export const Camera = () => {
+    const videoRef = useRef();
+    const [modelsLoaded, setModelsLoaded] = useState(false);
+    const [captureVideo, setCaptureVideo] = useState(false);
+    const [expression, setExpression] = useState(undefined);
 
     useEffect(() => {
-        return () => {
-            webcam = document.getElementById("webcam")
-            setupFaceDetection()
-            setupWebcam()
+        const loadModels = async () => {
+            Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+                faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+            ]).then(setModelsLoaded(true));
         };
+
+        loadModels();
     }, []);
 
-    async function setupFaceDetection() {
-        // event.preventDefault()
-
-        const homeDoc = document.getElementById("home")
-        if (homeDoc != null) {
-        homeDoc.remove()
-        }
-        const smileStatusDoc = document.getElementById("smileStatus")
-        if (smileStatusDoc != null) {
-            smileStatusDoc.style.display = "block"
-        }
-        await loadModels()
-        // setupWebcam()
-    }
-
-    async function loadModels() {
-        //"https://www.smile-lose.com/models"
-        const port = "3000"
-        const host = "10.2.7.60"
-        const modelsUrl = "http://${host}:${port}/models"
-        await faceapi.nets.tinyFaceDetector.loadFromUri(modelsUrl)
-        await faceapi.nets.faceExpressionNet.loadFromUri(modelsUrl)
-    }
-
-    function setupWebcam() {
+    const startWebcam = () => {
+        setCaptureVideo(true);
         navigator.mediaDevices
-            .getUserMedia({ video: true, audio: false })
-            .then(stream => {
-                webcam.srcObject = stream
-                // if (isFirstRound) startFirstRound()
+            .getUserMedia({video: {width: VIDEO_WIDTH}})
+            .then((stream) => {
+                const video = videoRef.current;
+                video.srcObject = stream;
+                video.play();
             })
-            .catch(() => {
-                document.getElementById("smileStatus").textContent = "camera not found"
+            .catch((error) => {
+                console.error("error: ", error);
+            });
+    };
 
-                isUsingCamera = false
-                // if (isFirstRound) startFirstRound()
-            })
-    }
+    const closeWebcam = () => {
+        videoRef.current.pause();
+        videoRef.current.srcObject.getTracks()[0].stop();
+        setCaptureVideo(false);
+    };
 
-    function isSmiling(expressions) {
-        // filtering false positive
-        const maxValue = Math.max(
-            ...Object.values(expressions).filter(value => value <= 1)
-        )
-        const expressionsKeys = Object.keys(expressions)
-        const mostLikely = expressionsKeys.filter(
-            expression => expressions[expression] === maxValue
-        )
-        if (mostLikely[0] && mostLikely[0] == 'happy')
-            return true
-        return false
-    }
+    const onVideoPlay = () => {
+        setInterval(async () => {
+            try {
+                if (videoRef && videoRef.current) {
+                    const result = await faceapi
+                        .detectAllFaces(
+                            videoRef.current,
+                            new faceapi.TinyFaceDetectorOptions()
+                        )
+                        .withFaceExpressions();
 
-    async function refreshState() {
-        setInterval(async() => {
-            const detections = await faceapi
-                .detectAllFaces(webcam, new faceapi.TinyFaceDetectorOptions())
-                .withFaceExpressions()
-            if (detections && detections[0] && detections[0].expressions) {
-                isUsingCamera = true
-                if (isSmiling(detections[0].expressions)) {
-                    currentSmileStatus = true
-                    document.getElementById("smileStatus").textContent = "YOU SMILE !"
-                } else {
-                    document.getElementById("smileStatus").textContent = "not smiling"
+                    // TODO: Do something with the result here :) For example:
+                    const expressions =
+                        result.length && result[0].expressions.asSortedArray();
+                    if (expressions && expressions.length) {
+                        if (expressions[0] != null) {
+                            if (expressions[0].expression === 'happy') {
+                                // console.log(expressions[0])
+                                // html2canvas(document.body).then(canvas =>
+                                //     canvas.toDataURL()
+                                // )
+                            }
+                        }
+                        setExpression(expressions[0]);
+                    }
                 }
+            } catch (error) {
+                console.error("error: ", error);
             }
-        }, 400)
+        }, 100);
+    };
+
+    function captureImage() {
+        html2canvas(document.querySelector("#capture")).then(canvas => {
+            let c = document.body.getElementsByTagName("canvas")
+            console.log(c)
+            if (c != null && c.length > 0) {
+              c[0].parentElement.removeChild(c[0])
+                console.log("C Removed!")
+            }
+            canvas.style.width = "50vw";
+            canvas.style.height = "50vw";
+            canvas.style.borderRadius = "100%";
+            canvas.style.backgroundPosition = "center center";
+            canvas.style.backgroundRepeat = "no-repeat";
+            canvas.style.backgroundSize =  "cover";
+            canvas.style.objectPosition = "center center";
+            canvas.style.objectFit = "cover";
+            canvas.style.overflow = "hidden";
+            canvas.style.alignItems = "center"
+            canvas.style.display = "flex";
+            canvas.style.flexDirection = "column";
+            canvas.id = "capturedImage"
+            document.body.appendChild(canvas)
+        });
     }
 
-    return(
-        <camera >
-            <div ref={videoRef}>
-
+    return (
+        <div>
+            <div style={{textAlign: "center", padding: "10px"}}>
+                {captureVideo ? (
+                    <button onClick={closeWebcam}>Close webcam</button>
+                ) : (
+                    <button onClick={startWebcam}>Start webcam</button>
+                )}
             </div>
-        </camera>
-    )
 
-}
-
-
-const cameraStyle = {
-    margin: '0',
-    padding: '0',
-    width: '100vw',
-    height: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center'
-}
-
-const appCanvas = {
-    position: 'absolute',
-    top: '100px'
-}
-
-export default Camera
+            <div style={{textAlign: "center", padding: "10px"}}>
+                {captureVideo ? (
+                    <button onClick={captureImage}>Capture Image</button>
+                ) : (
+                    <button>Disabled</button>
+                )}
+            </div>
+            {captureVideo &&
+                (modelsLoaded ? (
+                    <div>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                textAlign: "center",
+                            }}
+                        >
+                            <video
+                                id={"capture"}
+                                ref={videoRef}
+                                height={VIDEO_HEIGHT}
+                                width={VIDEO_WIDTH}
+                                onPlay={onVideoPlay}
+                            />
+                            <div style={{width: "200px"}}>
+                                Mood: {expression ? expression.expression : "-"}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div>Loading...</div>
+                ))}
+        </div>
+    );
+};
