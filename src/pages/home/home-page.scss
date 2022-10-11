@@ -1,0 +1,11 @@
+.home {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: var(--md-amber-100);
+
+  width: calc(100% - 4rem);
+  height: calc(100% - 4rem);
+  padding: 2rem;
+}
+

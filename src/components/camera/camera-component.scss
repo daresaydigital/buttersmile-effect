@@ -1,0 +1,56 @@
+.camera-wrapper {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  z-index: 1;
+  gap: 1rem;
+  margin: auto auto auto auto;
+
+  .camera-card {
+    width: fit-content;
+    min-width: 666.7px;
+    max-width: 666.7px;
+    height: 500px;
+    background-color: white;
+    margin: auto;
+    border-radius: 8px;
+    display: grid;
+    align-items: center;
+
+    text-align: center;
+    font-size: 35px;
+    font-weight: bold;
+    overflow: hidden;
+
+    box-shadow: 0 0 10px 3px rgba(black, 0.1);
+
+    video {
+      border-radius: inherit;
+      width: auto !important;
+      height: 100% !important;
+      object-fit: cover;
+    }
+  }
+
+  desc {
+
+  }
+
+  .camera-actions {
+    display: flex;
+    gap: 1rem;
+
+    button {
+      border: unset;
+      background-color: var(--md-red-500);
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--md-red-c-500);
+      cursor: pointer;
+
+    }
+  }
+}

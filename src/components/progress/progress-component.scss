@@ -1,0 +1,60 @@
+.progress {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin: auto;
+  gap: 1rem;
+  z-index: 1;
+
+
+  .steps {
+    padding: 0;
+    list-style: none;
+    display: flex;
+    gap: 3rem;
+
+    li {
+      font-weight: bold;
+      font-size: 35px;
+      border: 4px solid white;
+      border-radius: 50%;
+      padding: 2rem;
+      line-height: 0.75rem;
+      position: relative;
+      width: 75px;
+      height: 75px;
+      display: grid;
+      align-content: center;
+      text-align: center;
+      color: white;
+      &:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: calc(100% + 2px);
+        height: 4px;
+        width: calc(3rem + 2px);
+        background-color: white;
+        margin: auto;
+      }
+
+      &:first-child:before {
+        content: none;
+      }
+
+    }
+
+    li.active {
+      border: 4px solid green;
+      color: green;
+      &:before {
+        background-color: green;
+      }
+    }
+
+
+  }
+
+
+}
