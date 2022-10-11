@@ -25,7 +25,8 @@ export class ScreenshotModal extends Component<Props, any> {
                 </div>
                 <div className="screenshot-wrapper">
                     <img src={this.props.screenshotURI} alt=""/>
-                    <h1>As Bryant H. McGill Says: "The greatest self is a peaceful smile, that always sees the world smiling back."</h1>
+                    <h1>As Bryant H. McGill Says:
+                        <br/> "The greatest self is a peaceful smile, that always sees the world smiling back."</h1>
                     <div className="actions">
                         <button onClick={this.props.resetStreak()}>Reset The Game</button>
                         <a download="you.jpeg" href={this.props.screenshotURI}>
