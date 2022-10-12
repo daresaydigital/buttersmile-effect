@@ -123,11 +123,15 @@ export class CameraComponent extends Component<Props, State> {
         <div className="camera-card" onClick={() => this.toggleWebcam()}>
           {this.state.showCamera ? (
             <>
+              <span className="emoji">🤔</span>
               <span>Hold on...</span>
               <video id={'camera'} ref={this.videoRef} onPlay={() => this.onVideoPlay()} />
             </>
           ) : (
-            <span>Press to begin!</span>
+            <>
+              <span className="emoji">😊</span>
+              <span>Press to begin!</span>
+            </>
           )}
         </div>
       </div>

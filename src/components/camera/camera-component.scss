@@ -15,7 +15,7 @@
     &.outer {
       width: calc(100% + 200px);
       height: calc(100% + 200px);
-      background-color: var(--yellow-ulrta-light);
+      background-color: var(--yellow-ultra-light);
     }
 
     &.inner {
@@ -27,13 +27,14 @@
 
   .camera-card {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background-color: var(--yellow-light);
+    background-color: rgba(255, 255, 255, 0.8);
     overflow: hidden;
 
     &:hover {
@@ -41,9 +42,14 @@
     }
 
     span {
+      display: block;
       font-size: 36px;
       line-height: 150%;
       font-weight: 600;
+
+      &.emoji {
+        font-size: 240px;
+      }
     }
 
     video {

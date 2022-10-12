@@ -1,0 +1,9 @@
+.bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: var(--yellow-light);
+  border: 20px solid var(--yellow-ultra-light);
+  border-radius: 50%;
+  background-size: contain;
+}
