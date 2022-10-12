@@ -1,7 +1,6 @@
 import { Component } from 'react';
 import './home-page.scss';
 import { CameraComponent } from '../../components/camera/camera-component';
-import { ProgressComponent } from '../../components/progress/progress-component';
 import { ScreenshotModal } from '../../components/screenshot-modal/screenshot-modal';
 import { CSSTransition } from 'react-transition-group';
 import supabase from '../../utils/supabase-client';
@@ -65,8 +64,6 @@ export class HomePage extends Component<any, State> {
     return (
       <div className="home">
         <CameraComponent streak={this.state.streak} onStreak={this.handleStreak.bind(this)} />
-        <ProgressComponent streak={this.state.streak} />
-
         <CSSTransition
           in={this.state.streakCompleted}
           timeout={300}
