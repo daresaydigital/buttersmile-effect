@@ -3,11 +3,11 @@
   height: 100%;
   display: grid;
   grid-template-rows: 60px calc(100vh - 60px);
-  grid-template-areas: "header" "main";
-
+  grid-template-areas: 'header' 'main';
 
   main {
     height: 100%;
     width: 100%;
+    background-color: var(--yellow-medium);
   }
 }

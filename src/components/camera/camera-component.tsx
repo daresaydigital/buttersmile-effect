@@ -1,129 +1,140 @@
-import React, {Component} from "react";
-import './camera-component.scss'
-import * as faceApi from "@vladmandic/face-api";
-import FaceApiConstants from "../../constants/face-api-constants";
-import VideoUtilities from "../../utils/video-utilities";
+import * as faceApi from '@vladmandic/face-api';
+import classNames from 'classnames';
+import React, { Component } from 'react';
+import FaceApiConstants from '../../constants/face-api-constants';
+import VideoUtilities from '../../utils/video-utilities';
+import './camera-component.scss';
 
 type State = {
-    showCamera: boolean,
-}
+  showCamera: boolean;
+};
 
 type Props = {
-    streak: number,
-    onStreak: Function
-}
+  streak: number;
+  onStreak: Function;
+};
 
 export class CameraComponent extends Component<Props, State> {
+  videoRef = React.createRef<HTMLVideoElement>();
 
-    videoRef = React.createRef<HTMLVideoElement>();
-
-    constructor(props: any) {
-        super(props);
-        this.state = {
-            showCamera: false,
-        }
-    }
-
-    async componentDidMount() {
-        await this.loadModels()
-    }
-
-    async loadModels() {
-        await Promise.all([
-            faceApi.nets.tinyFaceDetector.loadFromUri(FaceApiConstants.MODEL_URL),
-            faceApi.nets.faceLandmark68Net.loadFromUri(FaceApiConstants.MODEL_URL),
-            faceApi.nets.faceRecognitionNet.loadFromUri(FaceApiConstants.MODEL_URL),
-            faceApi.nets.faceExpressionNet.loadFromUri(FaceApiConstants.MODEL_URL),
-        ])
-    }
-
-    startWebcam() {
-        this.setState({showCamera: true});
-        navigator.mediaDevices
-            .getUserMedia({video: {}})
-            .then((stream) => {
-                let video: any = this.videoRef.current;
-                if (video) {
-                    video.srcObject = stream;
-                    video.play();
-                }
-            }).catch((e) => {
-            console.log(e)
-        })
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      showCamera: false,
     };
+  }
 
-    closeWebcam() {
-        try {
-            this.videoRef?.current?.pause();
-            // @ts-ignore
-            this.videoRef.current?.srcObject?.getTracks()[0].stop();
-            this.setState({showCamera: false});
-        } catch (e) {
-            console.log(e)
+  async componentDidMount() {
+    await this.loadModels();
+  }
+
+  async loadModels() {
+    await Promise.all([
+      faceApi.nets.tinyFaceDetector.loadFromUri(FaceApiConstants.MODEL_URL),
+      faceApi.nets.faceLandmark68Net.loadFromUri(FaceApiConstants.MODEL_URL),
+      faceApi.nets.faceRecognitionNet.loadFromUri(FaceApiConstants.MODEL_URL),
+      faceApi.nets.faceExpressionNet.loadFromUri(FaceApiConstants.MODEL_URL),
+    ]);
+  }
+
+  startWebcam() {
+    this.setState({ showCamera: true });
+    navigator.mediaDevices
+      .getUserMedia({ video: {} })
+      .then((stream) => {
+        let video: any = this.videoRef.current;
+        if (video) {
+          video.srcObject = stream;
+          video.play();
         }
-    };
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  }
 
+  closeWebcam() {
+    try {
+      this.videoRef?.current?.pause();
+      // @ts-ignore
+      this.videoRef.current?.srcObject?.getTracks()[0].stop();
+      this.setState({ showCamera: false });
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
-    async onVideoPlay() {
-        setInterval(async () => {
-            try {
-                if (this.videoRef?.current && this.props.streak < 3) {
-                    const result = await faceApi
-                        .detectSingleFace(
-                            this.videoRef.current,
-                            new faceApi.TinyFaceDetectorOptions()
-                        )
-                        .withFaceExpressions();
+  toggleWebcam() {
+    if (!this.state.showCamera) {
+      this.startWebcam();
+    } else {
+      this.closeWebcam();
+    }
+  }
 
-                    if (result?.expressions) {
-                        let bestProbabilityExpression = result.expressions.asSortedArray()[0];
-                        if (bestProbabilityExpression.expression === FaceApiConstants.expressionTypes.happy) {
+  async onVideoPlay() {
+    setInterval(async () => {
+      try {
+        if (this.videoRef?.current && this.props.streak < 3) {
+          const result = await faceApi
+            .detectSingleFace(this.videoRef.current, new faceApi.TinyFaceDetectorOptions())
+            .withFaceExpressions();
 
-                            let nextStreakValue = this.props.streak + 1
-                            this.props.onStreak(nextStreakValue, nextStreakValue === 3 ? this.takeScreenshot() : '')
-                            nextStreakValue === 3 && this.closeWebcam();
-                        } else {
-                            this.props.onStreak(0)
-                        }
-
-
-                    }
-                }
-
-                    } catch (error) {
-                console.error("error: ", error);
+          if (result?.expressions) {
+            let bestProbabilityExpression = result.expressions.asSortedArray()[0];
+            if (bestProbabilityExpression.expression === FaceApiConstants.expressionTypes.happy) {
+              let nextStreakValue = this.props.streak + 1;
+              this.props.onStreak(
+                nextStreakValue,
+                nextStreakValue === 3 ? this.takeScreenshot() : ''
+              );
+              nextStreakValue === 3 && this.closeWebcam();
+            } else {
+              this.props.onStreak(0);
             }
-        }, 1100);
-    }
-
-
-    takeScreenshot() {
-        let videoElement = document.getElementById('camera');
-        if (videoElement) {
-
-            return VideoUtilities.captureScreenshotFromVideo(videoElement)
-        } else {
-            return ''
+          }
         }
-    }
+      } catch (error) {
+        console.error('error: ', error);
+      }
+    }, 1100);
+  }
 
-
-    render() {
-        return (
-            <div className="camera-wrapper">
-                <div className="camera-card">
-                    {this.state.showCamera ? <video
-                        id={"camera"}
-                        ref={this.videoRef}
-                        onPlay={() => this.onVideoPlay()}
-                    /> : <p> Press Start to Begin!</p>}
-                </div>
-                <desc>Smile For 3 Seconds!</desc>
-                <div className="camera-actions">
-                    <button onClick={() => this.startWebcam()}>Start Start</button>
-                    <button onClick={() => this.closeWebcam()}>Stop Camera</button>
-                </div>
-            </div>
-        );
+  takeScreenshot() {
+    let videoElement = document.getElementById('camera');
+    if (videoElement) {
+      return VideoUtilities.captureScreenshotFromVideo(videoElement);
+    } else {
+      return '';
     }
-};
+  }
+
+  render() {
+    return (
+      <div className="camera-wrapper">
+        <div
+          className={classNames('frame', 'outer')}
+          style={{ opacity: this.props.streak > 1 ? 1 : 0 }}
+        ></div>
+        <div
+          className={classNames('frame', 'inner')}
+          style={{ opacity: this.props.streak > 0 ? 1 : 0 }}
+        ></div>
+        <div className="camera-card" onClick={() => this.toggleWebcam()}>
+          {this.state.showCamera ? (
+            <>
+              <span className="emoji">🤔</span>
+              <span>Hold on...</span>
+              <video id={'camera'} ref={this.videoRef} onPlay={() => this.onVideoPlay()} />
+            </>
+          ) : (
+            <>
+              <span className="emoji">😊</span>
+              <span>Press to begin!</span>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+}

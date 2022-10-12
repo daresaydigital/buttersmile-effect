@@ -1,15 +1,17 @@
 import { Component } from 'react';
-import './home-page.scss';
-import { CameraComponent } from '../../components/camera/camera-component';
-import { ProgressComponent } from '../../components/progress/progress-component';
-import { ScreenshotModal } from '../../components/screenshot-modal/screenshot-modal';
 import { CSSTransition } from 'react-transition-group';
+import { Bubbles } from '../../components/bubbles/bubble';
+import { CameraComponent } from '../../components/camera/camera-component';
+import { ScreenshotModal } from '../../components/screenshot-modal/screenshot-modal';
+import { getImages, storeImage } from '../../utils/images';
 import supabase from '../../utils/supabase-client';
+import './home-page.scss';
 
 type State = {
   streak: number;
   streakCompleted: boolean;
   screenshotURI: string;
+  images: string[];
 };
 
 interface SmilesData {
@@ -24,6 +26,7 @@ export class HomePage extends Component<any, State> {
       streak: 0,
       streakCompleted: false,
       screenshotURI: '',
+      images: getImages().map((image) => image.url),
     };
   }
 
@@ -50,7 +53,8 @@ export class HomePage extends Component<any, State> {
       if (streak === 3) {
         this.setState({ streakCompleted: true, screenshotURI: imageURL });
         this.updateSmileValue();
-        console.log(imageURL);
+        storeImage(imageURL);
+        this.setState({ images: getImages().map((image) => image.url) });
       }
     }
   }
@@ -63,22 +67,23 @@ export class HomePage extends Component<any, State> {
 
   render() {
     return (
-      <div className="home">
-        <CameraComponent streak={this.state.streak} onStreak={this.handleStreak.bind(this)} />
-        <ProgressComponent streak={this.state.streak} />
-
-        <CSSTransition
-          in={this.state.streakCompleted}
-          timeout={300}
-          classNames="fade-in"
-          unmountOnExit
-        >
-          <ScreenshotModal
-            screenshotURI={this.state.screenshotURI}
-            resetStreak={() => this.resetStreak.bind(this)}
-          />
-        </CSSTransition>
-      </div>
+      <>
+        <Bubbles images={this.state.images} />
+        <div className="home">
+          <CameraComponent streak={this.state.streak} onStreak={this.handleStreak.bind(this)} />
+          <CSSTransition
+            in={this.state.streakCompleted}
+            timeout={300}
+            classNames="fade-in"
+            unmountOnExit
+          >
+            <ScreenshotModal
+              screenshotURI={this.state.screenshotURI}
+              resetStreak={() => this.resetStreak.bind(this)}
+            />
+          </CSSTransition>
+        </div>
+      </>
     );
   }
 }
