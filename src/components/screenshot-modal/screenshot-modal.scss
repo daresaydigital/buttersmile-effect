@@ -16,8 +16,7 @@
     overflow: hidden;
     z-index: 0;
 
-
-    [class|="confetti"] {
+    [class|='confetti'] {
       position: absolute;
     }
 
@@ -28,19 +27,19 @@
       $l: random(100);
       .confetti-#{$i} {
         width: #{$w}px;
-        height: #{$w*0.4}px;
+        height: #{$w * 0.4}px;
         background-color: nth($colors, random(3));
         top: -10%;
-        left: unquote($l+"%");
+        left: unquote($l + '%');
         opacity: random() + 0.5;
-        transform: rotate(#{random()*360}deg);
-        animation: drop-#{$i} unquote(4+random()+"s") unquote(random()+"s") infinite;
+        transform: rotate(#{random() * 360}deg);
+        animation: drop-#{$i} unquote(4 + random() + 's') unquote(random() + 's') infinite;
       }
 
       @keyframes drop-#{$i} {
         100% {
           top: 110%;
-          left: unquote($l+random(15)+"%");
+          left: unquote($l + random(15) + '%');
         }
       }
     }
@@ -82,9 +81,7 @@
         color: var(--md-red-c-500);
         cursor: pointer;
         margin-top: auto;
-
       }
-
     }
   }
 }
