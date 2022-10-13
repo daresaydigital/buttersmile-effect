@@ -9,3 +9,39 @@
   padding: 2rem;
   overflow: hidden;
 }
+
+.confetti {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  z-index: 0;
+
+  [class|='confetti'] {
+    position: absolute;
+  }
+
+  $colors: (#d13447, #ffbf00, #263672);
+
+  @for $i from 0 through 300 {
+    $w: random(8);
+    $l: random(100);
+    .confetti-#{$i} {
+      width: #{$w}px;
+      height: #{$w * 0.4}px;
+      background-color: nth($colors, random(3));
+      top: -10%;
+      left: unquote($l + '%');
+      opacity: random() + 0.5;
+      transform: rotate(#{random() * 360}deg);
+      animation: drop-#{$i} unquote(4 + random() + 's') unquote(random() + 's') infinite;
+    }
+
+    @keyframes drop-#{$i} {
+      100% {
+        top: 110%;
+        left: unquote($l + random(15) + '%');
+      }
+    }
+  }
+}

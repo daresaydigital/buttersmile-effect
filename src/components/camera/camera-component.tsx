@@ -121,6 +121,10 @@ export class CameraComponent extends Component<Props, State> {
           style={{ opacity: this.props.streak > 0 ? 1 : 0 }}
         ></div>
         <div className="camera-card" onClick={() => this.toggleWebcam()}>
+          <span>
+            Smile for 3 seconds <br />
+            to feed the Monsdare
+          </span>
           {this.state.showCamera ? (
             <>
               <span className="emoji">🤔</span>
