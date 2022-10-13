@@ -1,5 +1,5 @@
 const LS_KEY = 'butter-smiles';
-const MAX_LIMIT = 5;
+const MAX_LIMIT = 10;
 
 interface ImageItem {
   url: string;
